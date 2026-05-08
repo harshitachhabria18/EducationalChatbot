@@ -1,0 +1,5 @@
+venv/
+.env
+__pycache__/
+flask_session_data/
+*.pyc
