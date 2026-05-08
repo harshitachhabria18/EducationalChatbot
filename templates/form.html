@@ -1,152 +1,930 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Educational Chatbot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduBot — Your Learning Companion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+    <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background-color: #f4f4f4;
+        /* ─── CSS Variables ─── */
+        :root {
+            --bg:         #0f0e0c;
+            --surface:    #1a1814;
+            --surface2:   #232018;
+            --border:     #2e2b24;
+            --accent:     #e8a838;
+            --accent-dim: #b8832a;
+            --user-bg:    #1e2a1a;
+            --user-border:#3a5c2e;
+            --bot-bg:     #1a1f2e;
+            --bot-border: #2e3d5c;
+            --err-bg:     #2a1a1a;
+            --err-border: #5c2e2e;
+            --text:       #ede8df;
+            --text-muted: #8a8070;
+            --text-dim:   #5a5248;
+            --radius:     14px;
+            --shadow:     0 8px 32px rgba(0,0,0,0.5);
         }
-        .chat-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 800px;
-            margin: auto;
-            height: 90vh;
+
+        body.light-mode {
+            --bg:         #faf8f4;
+            --surface:    #ffffff;
+            --surface2:   #f0ece4;
+            --border:     #e0dcd4;
+            --accent:     #c87a10;
+            --accent-dim: #a06008;
+            --user-bg:    #e8f4e4;
+            --user-border:#a8d898;
+            --bot-bg:     #eaf0fb;
+            --bot-border: #b8cef0;
+            --err-bg:     #fbeaea;
+            --err-border: #f0b8b8;
+            --text:       #1a1614;
+            --text-muted: #6a6258;
+            --text-dim:   #a09880;
+            --shadow:     0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        body.light-mode .lang-select option { background: #f0ece4; } 
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ─── Reset & Base ─── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
+
+        /* Subtle background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 10%, rgba(232,168,56,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 90%, rgba(46,61,92,0.15) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Main Layout ─── */
+        .app-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 780px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 24px;
+            gap: 12px;
+        }
+
+        /* ─── Header ─── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+            animation: fadeDown 0.5s ease both;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(232,168,56,0.3);
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 300;
+            margin-top: 1px;
+        }
+
+        .clear-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .clear-btn:hover {
+            color: #e07070;
+            border-color: #5c2e2e;
+            background: var(--err-bg);
+        }
+
+        /* Theme toggle button */
+        .theme-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .theme-btn:hover {
+            color: var(--accent);
+            border-color: var(--accent-dim);
+            background: rgba(232,168,56,0.05);
+        }
+
+        body.light-mode .theme-btn:hover {
+            background: rgba(200,122,16,0.08);
+        }
+
+        /* ─── Chat History ─── */
         .chat-history {
-            flex-grow: 1;
+            flex: 1;
             overflow-y: auto;
-            padding-right: 10px;
-            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 4px 2px 4px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
-        .message {
-            margin: 10px 0;
-            padding: 8px;
-            border-radius: 5px;
+
+        .chat-history::-webkit-scrollbar { width: 4px; }
+        .chat-history::-webkit-scrollbar-track { background: transparent; }
+        .chat-history::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* Empty state */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text-dim);
+            animation: fadeIn 0.6s ease both;
         }
-        .user {
-            color: blue;
-            font-weight: bold;
+
+        .empty-state .big-icon {
+            font-size: 48px;
+            opacity: 0.4;
         }
-        .bot {
-            color: green;
-            font-weight: bold;
+
+        .empty-state p {
+            font-size: 14px;
+            font-weight: 300;
+            text-align: center;
+            max-width: 280px;
+            line-height: 1.6;
+        }
+
+        .empty-state .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .suggestion-chip {
+            font-size: 12px;
+            padding: 6px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            border-color: var(--accent-dim);
+            color: var(--accent);
+            background: rgba(232,168,56,0.05);
+        }
+
+        /* ─── Message Bubbles ─── */
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: slideUp 0.35s ease both;
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 14.5px;
+            line-height: 1.65;
+            font-weight: 400;
+            max-width: 100%;
+            border: 1px solid transparent;
+        }
+
+        /* User bubble */
+        .bubble-user {
+            background: var(--user-bg);
+            border-color: var(--user-border);
+            border-radius: var(--radius) var(--radius) 4px var(--radius);
+        }
+
+        .bubble-label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .bubble-user .bubble-label { color: #6aaa50; }
+        .bubble-bot .bubble-label  { color: #5b8dd9; }
+        .bubble-err .bubble-label  { color: #c05050; }
+
+        /* Bot bubble */
+        .bubble-bot {
+            background: var(--bot-bg);
+            border-color: var(--bot-border);
+            border-radius: var(--radius) var(--radius) var(--radius) 4px;
+        }
+
+        /* Error bubble */
+        .bubble-err {
+            background: var(--err-bg);
+            border-color: var(--err-border);
+        }
+
+        /* ─── Input Area ─── */
+        .input-area {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            animation: fadeUp 0.5s ease 0.1s both;
+            transition: border-color 0.2s;
+        }
+
+        .input-area:focus-within {
+            border-color: var(--accent-dim);
         }
 
         textarea {
             width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            resize: vertical;
-            margin-top: 5px;
-        }
-        button, .mic-button {
-            padding: 10px 15px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .mic-button {
+            background: transparent;
             border: none;
-            background: none;
-            cursor: pointer;
-        }
-        .mic-button img {
-            width: 30px;
-            vertical-align: middle;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            color: var(--text);
+            resize: none;
+            min-height: 52px;
+            max-height: 120px;
+            line-height: 1.6;
         }
 
-        .form-controls {
+        textarea::placeholder { color: var(--text-dim); }
+
+        .input-row {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
-            flex-wrap: wrap;
+        }
+
+        .input-row-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Concise toggle */
+        .concise-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        .concise-label:hover { color: var(--text); }
+
+        .concise-label input[type="checkbox"] { display: none; }
+
+        .toggle-track {
+            width: 32px;
+            height: 18px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            position: relative;
+            transition: background 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .concise-label input:checked ~ .toggle-track {
+            background: rgba(232,168,56,0.15);
+            border-color: var(--accent-dim);
+        }
+
+        .concise-label input:checked ~ .toggle-track .toggle-thumb {
+            transform: translateX(14px);
+            background: var(--accent);
+        }
+
+        /* Mic button */
+        .mic-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .mic-btn:hover {
+            border-color: var(--accent-dim);
+            color: var(--accent);
+            background: rgba(232,168,56,0.05);
+        }
+
+        .mic-btn.listening {
+            border-color: #c05050;
+            color: #e07070;
+            background: rgba(192,80,80,0.08);
+            animation: pulse 1s ease infinite;
+        }
+
+        /* Send button */
+        .send-btn {
+            padding: 9px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f0e0c;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(232,168,56,0.2);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(232,168,56,0.35);
+        }
+
+        .send-btn:active { transform: translateY(0); }
+
+        body.light-mode .send-btn {
+            background: #ffffff;
+            border: 1px solid #d0ccc4;
+            color: #1a1614;
+            box-shadow: none;
+        }
+
+        body.light-mode .send-btn:hover {
+            background: #f5f2ee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Hint text */
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* ─── Markdown rendering inside bot bubbles ─── */
+        .bubble-bot p  { margin-bottom: 8px; }
+        .bubble-bot p:last-child { margin-bottom: 0; }
+        .bubble-bot strong { color: var(--accent); font-weight: 600; }
+        .bubble-bot em { opacity: 0.85; font-style: italic; }
+        .bubble-bot h1, .bubble-bot h2, .bubble-bot h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--text);
+            margin: 12px 0 6px;
+            font-size: 15px;
+        }
+        .bubble-bot ul, .bubble-bot ol {
+            padding-left: 20px;
+            margin: 6px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .bubble-bot li { line-height: 1.6; }
+        .bubble-bot code {
+            background: rgba(232,168,56,0.1);
+            border: 1px solid rgba(232,168,56,0.2);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 13px;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
+        /* ─── Animations ─── */
+        @keyframes fadeDown  { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:none; } }
+        @keyframes fadeUp    { from { opacity:0; transform:translateY(10px);  } to { opacity:1; transform:none; } }
+        @keyframes fadeIn    { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+        @keyframes pulse     { 0%,100% { box-shadow:0 0 0 0 rgba(192,80,80,0.4); } 50% { box-shadow:0 0 0 6px rgba(192,80,80,0); } }
+
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .lang-select {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 7px 10px;
+            cursor: pointer; outline: none;
+            transition: all 0.2s;
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a8070' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 26px;
+        }
+        .lang-select:hover { border-color: var(--accent-dim); color: var(--text); }
+        .lang-select option { background: #232018; color: var(--text); }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 600px) {
+            .app-wrapper { padding: 10px 12px; gap: 8px; height: 100dvh; }
+
+            /* Header wraps to two lines on small screens */
+            .header { flex-wrap: wrap; gap: 8px; }
+            .header-right { width: 100%; justify-content: space-between; }
+            .lang-select { flex: 1; }
+            .header-title { font-size: 18px; }
+            .header-subtitle { font-size: 11px; }
+
+            /* Smaller bubbles */
+            .bubble { font-size: 14px; padding: 10px 12px; }
+
+            /* Suggestion chips scroll horizontally instead of wrapping */
+            .empty-state .suggestions { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding-bottom: 4px; }
+            .suggestion-chip { flex-shrink: 0; }
+
+            /* Tighter input area */
+            textarea { min-height: 40px; max-height: 100px; font-size: 14px; }
+            .send-btn { padding: 8px 14px; font-size: 13px; }
+            .concise-label { font-size: 12px; }
+            .input-hint { display: none; } /* hide hint on mobile — saves space */
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h2>🎓 Educational Chatbot</h2>
+<div class="app-wrapper">
 
-        <!-- Chat History -->
-        <div class="chat-history" id="chat-history">
-            {% for msg in history %}
-                <div class="message">
-                    <span class="user">You:</span> {{ msg.question }}<br>
-                    <span class="bot">Bot:</span> {{ msg.answer }}
-                </div>
-            {% endfor %}
-
-            <!-- {% if response %}
-                <div class="message">
-                    <span class="bot">Bot:</span> {{ response }}
-                </div>
-            {% endif %} -->
+    <!-- ── Header ── -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-icon">🎓</div>
+            <div>
+                <div class="header-title">EduBot</div>
+                <div class="header-subtitle" id="header-subtitle">Ask anything academic</div>
+            </div>
         </div>
 
-        <!-- Chat Form -->
-        <form method="POST" action="/generate" id="chat-form">
-            <label>Enter your educational question:</label><br>
+        <!-- Clear chat button — POSTs to /clear route in Flask -->
+        <div class="header-right">
+            <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+                <span id="theme-icon">☀</span>
+                <span id="theme-label">Light</span>
+            </button>
+            <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en">🌐 English</option>
+                <option value="hi">🇮🇳 Hindi</option>
+                <option value="gu">🇮🇳 Gujarati</option>
+                <option value="es">🇪🇸 Spanish</option>
+                <option value="fr">🇫🇷 French</option>
+                <option value="de">🇩🇪 German</option>
+                <option value="zh">🇨🇳 Chinese</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="ja">🇯🇵 Japanese</option>
+            </select>
+            <form method="POST" action="/clear">
+                <button type="submit" class="clear-btn" id="clear-btn">Clear chat</button>
+            </form>
+        </div>
+    </header>
 
-            <textarea id="prompt" name="prompt" rows="3" required placeholder="Type your question here..."></textarea><br>
-
-            <div class="form-controls">
-                <!-- 🎤 Voice Input Button -->
-                <button type="button" class="mic-button" onclick="startListening()">
-                    <img src="https://www.iconpacks.net/icons/1/free-microphone-icon-342-thumb.png" alt="Mic Icon">
-                </button>
-
-                <label>
-                    <input type="checkbox" name="concise" value="yes">
-                    Keep answer short and to the point
-                </label>
-
-                <button type="submit">Ask</button>
+    <!-- ── Chat History ── -->
+    <div class="chat-history" id="chat-history">
+        {% if not history %}
+        <div class="empty-state">
+            <div class="big-icon">📚</div>
+            <p>Ask any educational question — science, history, math, geography, and more.</p>
+            <div class="suggestions">
+                <span class="suggestion-chip" onclick="fillPrompt('How does photosynthesis work?')">Photosynthesis</span>
+                <span class="suggestion-chip" onclick="fillPrompt('Explain the French Revolution')">French Revolution</span>
+                <span class="suggestion-chip" onclick="fillPrompt('What is the Pythagorean theorem?')">Pythagorean theorem</span>
+                <span class="suggestion-chip" onclick="fillPrompt('What are Newton\'s laws of motion?')">Newton\'s Laws</span>
             </div>
-        </form>
+        </div>
+        {% else %}
+            {% for msg in history %}
+            <div class="message-group">
+                <div class="bubble bubble-user">
+                    <div class="bubble-label">You</div>
+                    {{ msg.question }}
+                </div>
+                {% if msg.is_error %}
+                <div class="bubble bubble-err">
+                    <div class="bubble-label">Notice</div>
+                    {{ msg.answer }}
+                </div>
+                {% else %}
+                <div class="bubble bubble-bot">
+                    <div class="bubble-label">EduBot</div>
+                    {{ msg.answer | safe }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
-    <script>
-        // Speech Recognition
-        function startListening() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+    <!-- ── Input Area ── -->
+    <div class="input-area">
+        <form method="POST" action="/generate" id="chat-form">
 
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('prompt').value = transcript;
-                // document.getElementById('chat-form').submit(); // Auto-submit after voice
-            };
+            <input type="hidden" name="lang" id="lang-hidden" value="en">
 
-            recognition.onerror = function(event) {
-                alert("Speech recognition error: " + event.error);
-            };
+            <!-- Question textarea -->
+            <textarea
+                id="prompt"
+                name="prompt"
+                rows="2"
+                placeholder="Ask an educational question…"
+                autocomplete="off"
+                spellcheck="true"
+            ></textarea>
 
-            recognition.start();
+            <div class="input-row">
+                <div class="input-row-left">
+
+                    <!-- 🎤 Voice input button -->
+                    <button type="button" class="mic-btn" id="mic-btn" onclick="toggleListening()" title="Voice input">
+                        🎤
+                    </button>
+
+                    <!-- Concise mode toggle -->
+                    <label class="concise-label">
+                        <input type="checkbox" name="concise" value="yes" id="concise-toggle">
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        <span id="concise-label-text">Brief answer</span>
+                    </label>
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" class="send-btn" id="send-btn">
+                    <span id="send-text">Ask</span> ↑
+                </button>
+            </div>
+
+        </form>
+        
+        <div class="input-hint" id="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+    </div>
+
+</div>
+
+<script>
+    // ── Language translations ──
+    const translations = {
+        en: {
+            subtitle:    "Ask anything academic",
+            emptyText:   "Ask any educational question — science, history, math, geography, and more.",
+            chips:       ["Photosynthesis", "French Revolution", "Pythagorean theorem", "Newton's Laws"],
+            prompts:     ["How does photosynthesis work?", "Explain the French Revolution", "What is the Pythagorean theorem?", "What are Newton's laws of motion?"],
+            placeholder: "Ask an educational question…",
+            brief:       "Brief answer",
+            send:        "Ask",
+            clear:       "Clear chat",
+            hint:        "Enter to send · Shift+Enter for new line",
+            lang:        "en-US"
+        },
+        hi: {
+            subtitle:    "कुछ भी शैक्षणिक पूछें",
+            emptyText:   "कोई भी शैक्षणिक प्रश्न पूछें — विज्ञान, इतिहास, गणित, भूगोल, और अधिक।",
+            chips:       ["प्रकाश संश्लेषण", "फ्रांसीसी क्रांति", "पाइथागोरस प्रमेय", "न्यूटन के नियम"],
+            prompts:     ["प्रकाश संश्लेषण क्या है?", "फ्रांसीसी क्रांति की व्याख्या करें", "पाइथागोरस प्रमेय क्या है?", "न्यूटन के गति के नियम क्या हैं?"],
+            placeholder: "शैक्षणिक प्रश्न पूछें…",
+            brief:       "संक्षिप्त उत्तर",
+            send:        "पूछें",
+            clear:       "चैट साफ करें",
+            hint:        "भेजने के लिए Enter · नई लाइन के लिए Shift+Enter",
+            lang:        "hi-IN"
+        },
+        gu: {
+            subtitle:    "કંઈ પણ શૈક્ષણિક પૂછો",
+            emptyText:   "કોઈ પણ શૈક્ષણિક પ્રશ્ન પૂછો — વિજ્ઞાન, ઈતિહાસ, ગણિત, ભૂગોળ, અને વધુ.",
+            chips:       ["પ્રકાશ સંશ્લેષણ", "ફ્રેન્ચ ક્રાંતિ", "પાયથાગોરસ પ્રમેય", "ન્યૂટનના નિયમો"],
+            prompts:     ["પ્રકાશ સંશ્લેષણ શું છે?", "ફ્રેન્ચ ક્રાંતિ સમજાવો", "પાયથાગોરસ પ્રમેય શું છે?", "ન્યૂટનના ગતિના નિયમો શું છે?"],
+            placeholder: "શૈક્ષણિક પ્રશ્ન પૂછો…",
+            brief:       "સંક્ષિપ્ત જવાબ",
+            send:        "પૂછો",
+            clear:       "ચેટ સાફ કરો",
+            hint:        "મોકલવા Enter · નવી લાઈન Shift+Enter",
+            lang:        "gu-IN"
+        },
+        es: {
+            subtitle:    "Pregunta cualquier tema académico",
+            emptyText:   "Haz cualquier pregunta educativa — ciencias, historia, matemáticas, geografía y más.",
+            chips:       ["Fotosíntesis", "Revolución Francesa", "Teorema de Pitágoras", "Leyes de Newton"],
+            prompts:     ["¿Cómo funciona la fotosíntesis?", "Explica la Revolución Francesa", "¿Qué es el teorema de Pitágoras?", "¿Cuáles son las leyes de Newton?"],
+            placeholder: "Haz una pregunta educativa…",
+            brief:       "Respuesta breve",
+            send:        "Preguntar",
+            clear:       "Borrar chat",
+            hint:        "Enter para enviar · Shift+Enter para nueva línea",
+            lang:        "es-ES"
+        },
+        fr: {
+            subtitle:    "Posez n'importe quelle question académique",
+            emptyText:   "Posez toute question éducative — sciences, histoire, maths, géographie et plus.",
+            chips:       ["Photosynthèse", "Révolution française", "Théorème de Pythagore", "Lois de Newton"],
+            prompts:     ["Comment fonctionne la photosynthèse?", "Expliquez la Révolution française", "Qu'est-ce que le théorème de Pythagore?", "Quelles sont les lois de Newton?"],
+            placeholder: "Posez une question éducative…",
+            brief:       "Réponse brève",
+            send:        "Demander",
+            clear:       "Effacer le chat",
+            hint:        "Entrée pour envoyer · Maj+Entrée pour nouvelle ligne",
+            lang:        "fr-FR"
+        },
+        de: {
+            subtitle:    "Stellen Sie akademische Fragen",
+            emptyText:   "Stellen Sie eine Bildungsfrage — Naturwissenschaften, Geschichte, Mathematik, Geographie und mehr.",
+            chips:       ["Photosynthese", "Französische Revolution", "Satz des Pythagoras", "Newtons Gesetze"],
+            prompts:     ["Wie funktioniert die Photosynthese?", "Erkläre die Französische Revolution", "Was ist der Satz des Pythagoras?", "Was sind Newtons Bewegungsgesetze?"],
+            placeholder: "Stellen Sie eine Bildungsfrage…",
+            brief:       "Kurze Antwort",
+            send:        "Fragen",
+            clear:       "Chat löschen",
+            hint:        "Enter zum Senden · Umschalt+Enter für neue Zeile",
+            lang:        "de-DE"
+        },
+        zh: {
+            subtitle:    "问任何学术问题",
+            emptyText:   "提问任何教育问题——科学、历史、数学、地理等。",
+            chips:       ["光合作用", "法国大革命", "毕达哥拉斯定理", "牛顿定律"],
+            prompts:     ["光合作用是如何工作的？", "解释法国大革命", "什么是毕达哥拉斯定理？", "牛顿运动定律是什么？"],
+            placeholder: "提问一个教育问题…",
+            brief:       "简短回答",
+            send:        "提问",
+            clear:       "清除聊天",
+            hint:        "Enter发送 · Shift+Enter换行",
+            lang:        "zh-CN"
+        },
+        ar: {
+            subtitle:    "اسأل أي سؤال أكاديمي",
+            emptyText:   "اطرح أي سؤال تعليمي — علوم، تاريخ، رياضيات، جغرافيا والمزيد.",
+            chips:       ["التمثيل الضوئي", "الثورة الفرنسية", "نظرية فيثاغورس", "قوانين نيوتن"],
+            prompts:     ["كيف يعمل التمثيل الضوئي؟", "اشرح الثورة الفرنسية", "ما هي نظرية فيثاغورس؟", "ما هي قوانين نيوتن للحركة؟"],
+            placeholder: "اطرح سؤالاً تعليمياً…",
+            brief:       "إجابة موجزة",
+            send:        "اسأل",
+            clear:       "مسح المحادثة",
+            hint:        "Enter للإرسال · Shift+Enter لسطر جديد",
+            lang:        "ar-SA"
+        },
+        ja: {
+            subtitle:    "学術的な質問を何でも",
+            emptyText:   "教育的な質問を何でも — 科学、歴史、数学、地理など。",
+            chips:       ["光合成", "フランス革命", "ピタゴラスの定理", "ニュートンの法則"],
+            prompts:     ["光合成はどのように機能しますか？", "フランス革命を説明してください", "ピタゴラスの定理とは何ですか？", "ニュートンの運動の法則とは？"],
+            placeholder: "教育的な質問をしてください…",
+            brief:       "簡潔な回答",
+            send:        "質問する",
+            clear:       "チャットを消去",
+            hint:        "Enterで送信 · Shift+Enterで改行",
+            lang:        "ja-JP"
+        }
+    };
+
+     // ── Theme toggle ──
+    function toggleTheme() {
+        const isLight = document.body.classList.toggle('light-mode');
+        const icon  = document.getElementById('theme-icon');
+        const label = document.getElementById('theme-label');
+        if (isLight) {
+            icon.textContent  = '☾';
+            label.textContent = 'Dark';
+        } else {
+            icon.textContent  = '☀';
+            label.textContent = 'Light';
+        }
+        localStorage.setItem('edubot-theme', isLight ? 'light' : 'dark');
+    }
+
+    let currentLang = "en";
+
+    // Called when user picks a language from dropdown
+    function changeLanguage(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+
+        // Update all UI text
+        document.getElementById("header-subtitle").textContent    = t.subtitle;
+        document.getElementById("concise-label-text").textContent = t.brief;
+        document.getElementById("send-text").textContent          = t.send;
+        document.getElementById("clear-btn").textContent          = t.clear;
+        document.getElementById("input-hint").textContent         = t.hint;
+        document.getElementById("prompt").placeholder             = t.placeholder;
+        document.getElementById("lang-hidden").value              = lang;
+
+        // Update empty state text if visible
+        const emptyText = document.getElementById("empty-text");
+        if (emptyText) emptyText.textContent = t.emptyText;
+
+        // Update suggestion chips
+        const chips = document.querySelectorAll(".suggestion-chip");
+        chips.forEach((chip, i) => {
+            if (t.chips[i]) {
+                chip.textContent = t.chips[i];
+                chip.setAttribute("onclick", `fillPrompt('${t.prompts[i]}')`);
+            }
+        });
+
+        // Save preference to localStorage
+        localStorage.setItem("edubot-lang", lang);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (localStorage.getItem('edubot-theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.getElementById('theme-icon').textContent  = '☾';
+            document.getElementById('theme-label').textContent = 'Dark';
         }
 
-        // Submit on Enter key (but allow Shift+Enter for newline)
-        document.addEventListener("DOMContentLoaded", function () {
-            const textarea = document.getElementById("prompt");
-            const form = document.getElementById("chat-form");
+        // Restore saved language
+        const saved = localStorage.getItem("edubot-lang");
+        if (saved && translations[saved]) {
+            document.getElementById("lang-select").value = saved;
+            changeLanguage(saved);
+        }
 
-            textarea.addEventListener("keydown", function (event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    form.submit();
-                }
-            });
+        // Auto-scroll to bottom
+        const chat = document.getElementById("chat-history");
+        chat.scrollTop = chat.scrollHeight;
 
-            // Auto-scroll chat to bottom
-            const chat = document.getElementById("chat-history");
-            chat.scrollTop = chat.scrollHeight;
+        // Auto-grow textarea
+        const textarea = document.getElementById("prompt");
+        textarea.addEventListener("input", function () {
+            this.style.height = "auto";
+            this.style.height = Math.min(this.scrollHeight, 140) + "px";
         });
-    </script>
+
+        // Enter = submit, Shift+Enter = new line
+        const form = document.getElementById("chat-form");
+        textarea.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                form.submit();
+            }
+        });
+    });
+
+    // Fill textarea from suggestion chips
+    function fillPrompt(text) {
+        const textarea = document.getElementById("prompt");
+        textarea.value = text;
+        textarea.focus();
+    }
+
+    // Voice input
+    let recognition = null;
+    let isListening = false;
+
+    function toggleListening() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Your browser does not support voice input. Try Chrome.");
+            return;
+        }
+
+        const micBtn = document.getElementById("mic-btn");
+
+        if (isListening) {
+            recognition.stop();
+            isListening = false;
+            micBtn.classList.remove("listening");
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = translations[currentLang].lang; // uses selected language
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function () {
+            isListening = true;
+            micBtn.classList.add("listening");
+            micBtn.title = "Click to stop";
+        };
+
+        recognition.onresult = function (event) {
+            document.getElementById("prompt").value = event.results[0][0].transcript;
+        };
+
+        recognition.onerror = function (event) {
+            alert("Voice input error: " + event.error);
+        };
+
+        recognition.onend = function () {
+            isListening = false;
+            micBtn.classList.remove("listening");
+            micBtn.title = "Voice input";
+        };
+
+        recognition.start();
+    }
+</script>
 </body>
 </html>
