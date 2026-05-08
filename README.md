@@ -1,44 +1,93 @@
-# Educational-Chatbot
-An AI-powered chatbot web application built using Flask, Google Gemini API, and HTML/CSS that answers educational questions only. The chatbot features voice input, session-based chat history, and automatic question classification to ensure responses remain focused on academic topics like science, math, history, and language learning.
+# EducationalChatbot
+An AI-powered chatbot web application built using Flask, Google Gemini API, and HTML/CSS that answers educational questions only. The chatbot features voice input, multilingual support, light/dark theme toggle, session-based chat history, and automatic question classification to ensure responses remain focused on academic topics.
 
-# Features
-Voice Input: Users can speak questions using the browser mic via Web Speech API.
+---
 
-Educational Question Filter: Questions are first classified using Gemini to check if they are academic in nature.
+## Features
 
-AI-Powered Answers: Uses Gemini 2.5 Flash to generate relevant and accurate educational responses.
+### AI & Learning
+- Educational Question Filter — Questions are first classified using Gemini to check if they are academic in nature. Non-educational queries are    blocked automatically.
+- AI-Powered Answers — Uses Gemini 2.5 Flash to generate relevant, accurate, and well-formatted educational responses.
+- Concise Mode — Optional toggle to get short and to-the-point answers when you need a quick explanation.
 
-Concise Mode: Optional checkbox to get short and to-the-point answers.
+### Voice & Input
+- Voice Input — Users can speak questions using the browser microphone via the Web Speech API. Works in the selected language automatically.
+- Auto-growing Textarea — Input box expands as you type. Press Enter to send, Shift+Enter for a new line.
+- Suggestion Chips — Quick-start prompts on the empty screen to help users get started instantly.
 
-Session-Based History: Maintains Q&A history during the session for a better chat experience.
+### Theme
+- Light & Dark Mode — Toggle between a warm dark theme and a clean light theme with a single click. Preference is saved to localStorage and restored on next visit.
 
-User-Friendly UI: Responsive layout with clean UI built using HTML, CSS, and vanilla JavaScript.
+### Multilingual Support
+- 9 Languages Supported — Interface and voice input work in English, Hindi, Gujarati, Spanish, French, German, Chinese, Arabic, and Japanese.
+- Dynamic UI Translation — All labels, placeholders, buttons, and suggestion chips update instantly when a language is selected.
+- Localized Voice Recognition — The microphone listens in the currently selected language for accurate transcription.
+- Persistent Language Preference — Selected language is saved to localStorage and restored on next visit.
 
-# Tech Stack
-Backend: Flask (Python)
+### Chat Experience
+- Session-Based History — Maintains full Q&A history during the session for a continuous chat experience.
+- Markdown Rendering — Bot responses support bold, italics, lists, headings, and inline code formatting.
+- Clear Chat — One-click button to wipe the session history and start fresh.
+- Responsive Design — Works seamlessly on desktop and mobile screens.
 
-Frontend: HTML, CSS, Bootstrap (optional), JavaScript
+---
 
-AI Model: Google Gemini API
+## Tech Stack
 
-Voice Recognition: Web Speech API
+- Backend: Flask (Python)
 
-Session Management: Flask session for storing chat history
+- Frontend: HTML, CSS, JavaScript
 
-# How to Run
-1. Clone the repo 
-  https://github.com/harshitachhabria18/Educational-Chatbot
+- AI Model: Google Gemini 2.5 Flash API
 
-2. Install dependencies
-  (Ensure you have Python 3 and pip installed)
+- Voice Recognition: Web Speech API
 
-3. Set your Gemini API key in the code:
-   genai.configure(api_key="YOUR_GEMINI_API_KEY")
+- Session Management: Flask-Session (filesystem)
 
-4. Run the Flask app
-   python app.py
+---
 
-5. Open in browser:
-   http://localhost:5000
+## Installation
 
+### Clone the repository
+```bash
+git clone https://github.com/YOUR_USERNAME/educational-chatbot.git
+cd educational-chatbot
+```
 
+### Create a virtual environment
+```bash
+python -m venv venv
+source venv/bin/activate      # On Windows: venv\Scripts\activate
+```
+
+### Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Environment Variables
+Create a .env file in the root directory:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+FLASK_SECRET_KEY=your_random_secret_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+---
+
+## Run Locally
+
+```bash
+python app.py
+```
+
+---
+
+Visit:
+
+```text
+http://localhost:5000 
+```
