@@ -16,7 +16,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback_secret_key")
 # Use server-side sessions to avoid 4KB cookie size limit
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_FILE_DIR"] = "./flask_session_data"
+app.config["SESSION_FILE_DIR"] = "/tmp/flask_session_data"
 Session(app)
 
 # Configure Gemini API
